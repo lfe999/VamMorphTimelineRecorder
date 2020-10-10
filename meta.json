@@ -1,0 +1,18 @@
+{ 
+   "licenseType" : "CC BY-SA", 
+   "creatorName" : "LFE", 
+   "packageName" : "MorphTimelineRecorder", 
+   "includeVersionsInReferences" : "true", 
+   "description" : "v0.0.0 Record Morphs to animation timeline", 
+   "credits" : "", 
+   "instructions" : "", 
+   "promotionalLink" : "https://github.com/lfe999/VamMorphTimelineRecorder",
+   "programVersion" : "1.19.0.5", 
+   "contentList" : [ 
+      "Custom\\Scripts\\LFE\\MorphTimelineRecorder\\src\\Plugin.cs",
+      "Custom\\Scripts\\LFE\\MorphTimelineRecorder\\src\\TrackedMorph.cs",
+      "Custom\\Scripts\\LFE\\MorphTimelineRecorder\\ADD_ME.cs"
+   ], 
+   "dependencies" : { 
+   }
+}
