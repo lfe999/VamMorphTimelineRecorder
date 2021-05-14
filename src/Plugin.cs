@@ -45,8 +45,6 @@ namespace LFE.MorphTimelineRecorder {
         #region constants and naming
         private const string NONE = "None";
         private const string ALL = "All";
-        private const string POSE = "POSE";
-        private const string POSE_AND_ANIMATABLE = "Pose and Animatable";
 
         private string NewMorphFilterKey = "morphFilter";
         private string NewMorphNameKey = "newMorph";
@@ -136,28 +134,48 @@ namespace LFE.MorphTimelineRecorder {
             TrackingCountJSON.val += 1;
         }
 
-        private void UICreateAddMorphForm()
+        private void UICreateAddForm()
         {
+            var groupNames = MorphController.GetMorphs().OrderBy(m => m.group.ToLowerInvariant()).Select(m => m.group).Distinct().ToList();
             NewMorphFilterJSON = new JSONStorableStringChooser(NewMorphFilterKey,
-                new List<string>() { ALL, POSE, POSE_AND_ANIMATABLE },
-                POSE_AND_ANIMATABLE,
+                groupNames,
+                ALL,
                 "Filter Morphs",
                 (string filter) =>
                 {
                     NewMorphNameJSON.val = String.Empty;
                     NewMorphNameJSON.choices = UIMorphNames;
                 });
-            CreateScrollablePopup(NewMorphFilterJSON);
+            CreateFilterablePopup(NewMorphFilterJSON);
 
             // the exact morph to add
             NewMorphNameJSON = new JSONStorableStringChooser(NewMorphNameKey, UIMorphNames, String.Empty, "Morph");
-            var p = CreateScrollablePopup(NewMorphNameJSON, rightSide: true);
+            var p = CreateFilterablePopup(NewMorphNameJSON, rightSide: true);
             p.popupPanelHeight = 1100f;
 
 
-            // left hand side empty space
-            var spacer = CreateSpacer();
-            spacer.height = 50f;
+            // left hand side arm for record
+            var armButton = CreateButton("Arm selected morphs for record");
+            armButton.button.onClick.AddListener(() => {
+                foreach(var tracked in TrackedMorphs)
+                {
+                    var motionAnimationControl = tracked.Atom.GetComponentInChildren<MotionAnimationControl>();
+                    if(motionAnimationControl == null) {
+                        continue;
+                    }
+
+                    if(!tracked.Enabled)
+                    {
+                        SuperController.LogMessage($"un-arming {tracked.Atom.name} for record");
+                        motionAnimationControl.armedForRecord = false;
+                    }
+                    else {
+                        SuperController.LogMessage($"arming {tracked.Atom.name} for record");
+                        motionAnimationControl.armedForRecord = true;
+                    }
+                }
+
+            });
 
             // "add" button
             var b = CreateButton("Add morph...", rightSide: true);
@@ -230,7 +248,7 @@ namespace LFE.MorphTimelineRecorder {
         public override void Init() {
             try {
                 TrackedMorphs = new List<TrackedMorph>();
-                UICreateAddMorphForm();
+                UICreateAddForm();
             }
             catch (Exception e) {
                 SuperController.LogError("Exception caught: " + e);
@@ -277,42 +295,16 @@ namespace LFE.MorphTimelineRecorder {
                 var filter = NewMorphFilterJSON.val;
                 var morphController = MorphController;
 
-                foreach(var m in morphController.GetMorphs())
-                {
-                    //if(m.displayName == "!Breast Diameter" || m.displayName == "AA") {
-                    //    SuperController.LogMessage($"-----", false);
-                    //    SuperController.LogMessage($"display: {m.displayName}", false);
-                    //    SuperController.LogMessage($"resolved display: {m.resolvedDisplayName}", false);
-                    //    SuperController.LogMessage($"morphName: {m.morphName}", false);
-                    //    SuperController.LogMessage($"active: {m.active}", false);
-                    //    SuperController.LogMessage($"disable: {m.disable}", false);
-                    //    SuperController.LogMessage($"visible: {m.visible}", false);
-                    //    SuperController.LogMessage($"posecontrol: {m.isPoseControl}", false);
-                    //    SuperController.LogMessage($"runtime: {m.isRuntime}", false);
-                    //    SuperController.LogMessage($"transient: {m.isTransient}", false);
-                    //    SuperController.LogMessage($"animatable: {m.animatable}", false);
-
-                    //}
-                }
-
                 switch (filter)
                 {
                     case ALL:
                         names = morphController.GetMorphDisplayNames();
                         break;
-                    case POSE:
-                        names = morphController.GetMorphs()
-                            .Where(m => m.isPoseControl)
-                            .Select(m => m.resolvedDisplayName)
-                            .ToList();
-                        break;
-                    case POSE_AND_ANIMATABLE:
-                        names = morphController.GetMorphs()
-                            .Where(m => m.isPoseControl || m.animatable)
-                            .Select(m => m.resolvedDisplayName)
-                            .ToList();
-                        break;
                     default:
+                        names = morphController.GetMorphs()
+                            .Where(m => m.group.Equals(filter, StringComparison.InvariantCultureIgnoreCase))
+                            .Select(m => m.resolvedDisplayName)
+                            .ToList();
                         break;
                 }
                 names.Sort(StringComparer.OrdinalIgnoreCase);
