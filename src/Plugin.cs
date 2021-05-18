@@ -196,6 +196,12 @@ namespace LFE.MorphTimelineRecorder {
                 int i = (int)TrackingCountJSON.val;
                 var morphName = NewMorphNameJSON.val ?? String.Empty;
 
+                // only allow one morph with a name to be added at a time
+                if(TrackedMorphs.FirstOrDefault(tm => tm.Morph.displayName.Equals(morphName)) != null) {
+                    SuperController.LogMessage($"'{morphName}' has already been added for morph tracking");
+                    return;
+                }
+
                 var generatedAtomName = TrackedMorphGeneratedAtomName(i, morphName);
                 StartCoroutine(GetOrCreateEmptyAtom(generatedAtomName, (atom) =>
                 {
