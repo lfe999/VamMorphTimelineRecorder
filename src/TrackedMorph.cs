@@ -124,7 +124,7 @@ namespace LFE.MorphTimelineRecorder
 
             if (freeControllerIndex < 0 || freeControllerIndex >= atom.freeControllers.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(freeControllerIndex));
+                throw new ArgumentOutOfRangeException(nameof(freeControllerIndex), $"atom has {atom.freeControllers.Length} freecontrollers and you are looking for {freeControllerIndex}");
             }
 
             Morph = morph;
@@ -156,22 +156,28 @@ namespace LFE.MorphTimelineRecorder
             // if both things have changed .. then the atom wins
             if (hasAtomChanged && hasMorphChanged)
             {
-                MorphValueNormalized = AtomValueNormalized;
+                SyncFromAtom();
             }
             else if (hasAtomChanged)
             {
-                MorphValueNormalized = AtomValueNormalized;
+                SyncFromAtom();
             }
             else if (hasMorphChanged)
             {
-                AtomValueNormalized = MorphValueNormalized;
+                SyncFromMorph();
             }
+        }
 
-            if (hasAtomChanged || hasMorphChanged)
-            {
-                _prevAtomValue = AtomValueActual;
-                _prevMorphValue = MorphValueActual;
-            }
+        public void SyncFromMorph() {
+            AtomValueNormalized = MorphValueNormalized;
+            _prevAtomValue = AtomValueActual;
+            _prevMorphValue = MorphValueActual;
+        }
+
+        public void SyncFromAtom() {
+            MorphValueNormalized = AtomValueNormalized;
+            _prevAtomValue = AtomValueActual;
+            _prevMorphValue = MorphValueActual;
         }
 
         /// <summary>

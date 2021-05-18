@@ -66,7 +66,7 @@ namespace LFE.MorphTimelineRecorder {
         }
         #endregion constants and naming
 
-        private void UICreateMorphRow(int i, string morphName, bool morphEnabled, string atomName)
+        private void UICreateMorphRow(int i, string morphName, bool morphEnabled, string atomName, bool initialCreation)
         {
 
             if(morphName == null || morphName == String.Empty || morphName == NONE)
@@ -97,7 +97,19 @@ namespace LFE.MorphTimelineRecorder {
             bool onRightSide = (i % 2 == 1);
 
             // at this point we are guaranteeed to have a morph / atom object
-            var trackedMorph = new TrackedMorph(morph, atom, 0, morphEnabled);
+            TrackedMorph trackedMorph;
+            try {
+                trackedMorph = new TrackedMorph(morph, atom, 0, morphEnabled);
+            }
+            catch(Exception e) {
+                SuperController.LogMessage(e.ToString());
+                throw;
+            }
+
+            if(initialCreation) {
+                // move the atom to match the morph if we just added the morph
+                trackedMorph.SyncFromMorph();
+            }
 
             // invisible atom name (storage in json)
             var a = new JSONStorableString(TrackedMorphAtomNameKey(i), String.Empty);
@@ -189,7 +201,7 @@ namespace LFE.MorphTimelineRecorder {
                 {
                     if(atom != null)
                     {
-                        UICreateMorphRow(i, morphName, true, atom.name);
+                        UICreateMorphRow(i, morphName, true, atom.name, true);
                     }
                 }));
             });
@@ -238,7 +250,7 @@ namespace LFE.MorphTimelineRecorder {
                     bool morphEnabled = jc.HasKey(morphEnabledKey) ? jc[morphEnabledKey].AsBool : false;
                     string morphAtom = jc[TrackedMorphAtomNameKey(i)] ?? String.Empty;
 
-                    UICreateMorphRow(i, morphName, morphEnabled, morphAtom);
+                    UICreateMorphRow(i, morphName, morphEnabled, morphAtom, false);
                 }
             }
 
