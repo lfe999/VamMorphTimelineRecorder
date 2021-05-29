@@ -7,7 +7,7 @@ Use Case 1: Record morph changes by directly controlling the Atom for later play
     - Add the "ADD_ME.cslist" file as a plugin on a Person
     - Open the plugin UI
     - Add any morph for testing
-    - NOTE: a HIDDED atom has been added with the morph name in it (make sure
+    - NOTE: a HIDDEN atom has been added with the morph name in it (make sure
       you select "show hidden" while browsing the atoms in VAM
     - Experiment: drag the Atoms X axis (red arrow direction) and watch the morph change
       the Atom X location is only watched from 0 to 1 in world space
@@ -271,6 +271,13 @@ namespace LFE.MorphTimelineRecorder {
             catch (Exception e) {
                 SuperController.LogError("Exception caught: " + e);
             }
+        }
+
+        void OnDestroy() {
+            foreach(var tracked in TrackedMorphs) {
+                SuperController.singleton.RemoveAtom(tracked.Atom);
+            }
+            TrackedMorphs = new List<TrackedMorph>();
         }
 
         void Update() {
