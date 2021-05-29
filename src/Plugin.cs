@@ -256,7 +256,19 @@ namespace LFE.MorphTimelineRecorder {
                     bool morphEnabled = jc.HasKey(morphEnabledKey) ? jc[morphEnabledKey].AsBool : false;
                     string morphAtom = jc[TrackedMorphAtomNameKey(i)] ?? String.Empty;
 
-                    UICreateMorphRow(i, morphName, morphEnabled, morphAtom, false);
+                    if(SuperController.singleton.GetAtomByUid(morphAtom) == null) {
+                        var position = i;
+                        StartCoroutine(GetOrCreateEmptyAtom(morphAtom, (atom) =>
+                        {
+                            if(atom != null)
+                            {
+                                UICreateMorphRow(position, morphName, true, atom.name, true);
+                            }
+                        }));
+                    }
+                    else {
+                        UICreateMorphRow(i, morphName, morphEnabled, morphAtom, false);
+                    }
                 }
             }
 
